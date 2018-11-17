@@ -113,7 +113,14 @@
     <script src="js/bootstrap.min.js"></script>
 	<script src="js/bootstrap-notify.min.js"></script>
 
-    <script type="text/javascript" src="https://maps.google.com/maps/api/js"></script>
+    <!-- <script type="text/javascript" src="https://maps.google.com/maps/api/js"></script> -->
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.3.4/dist/leaflet.css"
+        integrity="sha512-puBpdR0798OZvTTbP4A8Ix/l+A4dHDD0DGqYW6RQ+9jxkRFclaxxQb/SJAWZfWAkuyeQUytO7+7N4QKrDh+drA=="
+        crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.3.4/dist/leaflet.js"
+        integrity="sha512-nMMmRyTVoLYqjP9hrbed9S+FzjZHW5gY1TWCHA5ckwXZBadntCNs8kEqAWdrb9O7rxbCaA4lKTIWjDXZxflOcA=="
+        crossorigin=""></script>
 
     <script>
 
@@ -155,30 +162,29 @@
     // Do not remove unless you know what you're doing (and you have a google api key)
     // Hack from https://stackoverflow.com/questions/38148097/google-maps-api-without-key/38809129#38809129
     // hack Google Maps to bypass API v3 key (needed since 22 June 2016 http://googlegeodevelopers.blogspot.com.es/2016/06/building-for-scale-updates-to-google.html)
-    var target = document.head;
-    var observer = new MutationObserver(function(mutations) {
-        for (var i = 0; mutations[i]; ++i) { // notify when script to hack is added in HTML head
-            if (mutations[i].addedNodes[0].nodeName == "SCRIPT" && mutations[i].addedNodes[0].src.match(/\/AuthenticationService.Authenticate?/g)) {
-                var str = mutations[i].addedNodes[0].src.match(/[?&]callback=.*[&$]/g);
-                if (str) {
-                    if (str[0][str[0].length - 1] == '&') {
-                        str = str[0].substring(10, str[0].length - 1);
-                    } else {
-                        str = str[0].substring(10);
-                    }
-                    var split = str.split(".");
-                    var object = split[0];
-                    var method = split[1];
-                    window[object][method] = null; // remove censorship message function _xdc_._jmzdv6 (AJAX callback name "_jmzdv6" differs depending on URL)
-                    //window[object] = {}; // when we removed the complete object _xdc_, Google Maps tiles did not load when we moved the map with the mouse (no problem with OpenStreetMap)
-                }
-                observer.disconnect();
-            }
-        }
-    });
-    var config = { attributes: true, childList: true, characterData: true }
-    observer.observe(target, config);
-
+    // var target = document.head;
+    // var observer = new MutationObserver(function(mutations) {
+    //     for (var i = 0; mutations[i]; ++i) { // notify when script to hack is added in HTML head
+    //         if (mutations[i].addedNodes[0].nodeName == "SCRIPT" && mutations[i].addedNodes[0].src.match(/\/AuthenticationService.Authenticate?/g)) {
+    //             var str = mutations[i].addedNodes[0].src.match(/[?&]callback=.*[&$]/g);
+    //             if (str) {
+    //                 if (str[0][str[0].length - 1] == '&') {
+    //                     str = str[0].substring(10, str[0].length - 1);
+    //                 } else {
+    //                     str = str[0].substring(10);
+    //                 }
+    //                 var split = str.split(".");
+    //                 var object = split[0];
+    //                 var method = split[1];
+    //                 window[object][method] = null; // remove censorship message function _xdc_._jmzdv6 (AJAX callback name "_jmzdv6" differs depending on URL)
+    //                 //window[object] = {}; // when we removed the complete object _xdc_, Google Maps tiles did not load when we moved the map with the mouse (no problem with OpenStreetMap)
+    //             }
+    //             observer.disconnect();
+    //         }
+    //     }
+    // });
+    // var config = { attributes: true, childList: true, characterData: true }
+    // observer.observe(target, config);
     </script>
 
     <?php
@@ -321,6 +327,35 @@
     }
 ?>
 
+<script>
+    var atlas      = L.tileLayer('images/map/atlas/{z}_{x}_{y}.png'),
+        road       = L.tileLayer('images/map/road/{z}_{x}_{y}.png'),
+        satellite  = L.tileLayer('images/map/satellite/{z}_{x}_{y}.png'),
+        uvinvert   = L.tileLayer('images/map/uv-invert/{z}_{x}_{y}.png');
+
+    var mymap = L.map('map-canvas',
+    {
+        center: [72, 225],
+        zoom: 5,
+        layers: [atlas, road, satellite, uvinvert]
+    }).setMaxBounds([[65,100],[700,350]]);
+
+    var baseMaps = {
+        "<span style='color:#000;'>Road</span>": road,
+        "<span style='color:#000;'>Satellite</span>": satellite,
+        "<span style='color:#000;'>UV Invert</span>": uvinvert,
+        "<span style='color:#000;'>Atlas</span>": atlas,
+    };
+
+    L.control.layers(baseMaps).addTo(mymap);
+
+    L.tileLayer('images/map/{id}/{z}_{x}_{y}.png', {
+        minZoom: 3,
+        maxZoom: 7,
+        id: 'atlas',
+    }).addTo(mymap);
+
+</script>
 </body>
 
 </html>
